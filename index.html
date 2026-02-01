@@ -881,19 +881,49 @@
         function calculateQuickAnalysis(examType, score) {
             const isCET4 = examType === 'cet4';
             
-            // 计算百分位
+            // 计算百分位（你超越了X%的大学生）
             let percentile;
             if (isCET4) {
-                if (score < 425) percentile = (score - 220) / 205 * 50;
-                else if (score < 500) percentile = 50 + (score - 425) / 75 * 20;
-                else if (score < 550) percentile = 70 + (score - 500) / 50 * 15;
-                else percentile = 85 + (score - 550) / 160 * 15;
+                // CET-4: 直接计算在全体大学生中的位置
+                if (score < 425) {
+                    // 未及格，0-50百分位之间
+                    percentile = (score - 220) / 205 * 50;
+                } else if (score < 500) {
+                    // 及格到中等，50-70百分位
+                    percentile = 50 + (score - 425) / 75 * 20;
+                } else if (score < 550) {
+                    // 中等偏上，70-85百分位
+                    percentile = 70 + (score - 500) / 50 * 15;
+                } else {
+                    // 高分，85-99百分位
+                    percentile = 85 + (score - 550) / 160 * 14;
+                }
             } else {
-                if (score < 425) percentile = 15 * (score - 220) / 205;
-                else if (score < 500) percentile = 15 + (score - 425) / 75 * 10;
-                else if (score < 550) percentile = 25 + (score - 500) / 50 * 10;
-                else if (score < 600) percentile = 35 + (score - 550) / 50 * 10;
-                else percentile = 45 + (score - 600) / 110 * 55;
+                // CET-6: 需要考虑选择性偏差
+                // CET-6考生本身已是上半部分（50%+）
+                // 所以百分位 = 50% + (在CET-6考生中的位置 × 50%)
+                
+                let positionInCET6Takers; // 在CET-6考生中的位置
+                
+                if (score < 425) {
+                    // 未及格，在CET-6考生中属于后70%
+                    positionInCET6Takers = (score - 220) / 205 * 30;
+                } else if (score < 500) {
+                    // 刚及格，在CET-6考生中30-50百分位
+                    positionInCET6Takers = 30 + (score - 425) / 75 * 20;
+                } else if (score < 550) {
+                    // 中等，在CET-6考生中50-70百分位
+                    positionInCET6Takers = 50 + (score - 500) / 50 * 20;
+                } else if (score < 600) {
+                    // 良好，在CET-6考生中70-85百分位
+                    positionInCET6Takers = 70 + (score - 550) / 50 * 15;
+                } else {
+                    // 优秀，在CET-6考生中85-99百分位
+                    positionInCET6Takers = 85 + (score - 600) / 110 * 14;
+                }
+                
+                // 映射到全体大学生：50% + (在CET-6考生中的位置 × 50%)
+                percentile = 50 + (positionInCET6Takers * 0.5);
             }
 
             percentile = Math.min(99, Math.max(1, percentile));
